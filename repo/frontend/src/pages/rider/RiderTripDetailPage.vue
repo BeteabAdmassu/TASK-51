@@ -18,8 +18,10 @@ const fetchError = ref('')
 const cancelReason = ref('')
 const isCancelling = ref(false)
 const countdownSeconds = ref(null)
+const unreadCount = ref(0)
 let countdownTimer = null
 let pollTimer = null
+let unreadPollTimer = null
 
 const user = computed(() => authStore.user || { username: 'Guest', role: 'rider' })
 const reassigned = computed(() => (order.value?.audit_logs || []).some((entry) => entry.from_status === 'exception' && entry.to_status === 'matching'))
@@ -58,6 +60,17 @@ const fetchOrder = async () => {
   }
 }
 
+const fetchUnreadCount = async () => {
+  try {
+    const response = await api.get(`/ride-orders/${route.params.id}/chat`)
+    unreadCount.value = response.data.unread_count || 0
+    localStorage.setItem('roadlink_chat_unread_total', String(unreadCount.value))
+  } catch {
+    unreadCount.value = 0
+    localStorage.setItem('roadlink_chat_unread_total', '0')
+  }
+}
+
 const cancelTrip = async () => {
   if (!order.value || !window.confirm('Cancel this trip request?')) {
     return
@@ -89,7 +102,10 @@ onMounted(fetchOrder)
 
 onMounted(() => {
   pollTimer = setInterval(fetchOrder, 15000)
+  unreadPollTimer = setInterval(fetchUnreadCount, 30000)
 })
+
+onMounted(fetchUnreadCount)
 
 onBeforeUnmount(() => {
   if (countdownTimer) {
@@ -98,6 +114,10 @@ onBeforeUnmount(() => {
 
   if (pollTimer) {
     clearInterval(pollTimer)
+  }
+
+  if (unreadPollTimer) {
+    clearInterval(unreadPollTimer)
   }
 })
 </script>
@@ -115,6 +135,10 @@ onBeforeUnmount(() => {
         </div>
         <span class="status-pill">{{ order.status.replace('_', ' ') }}</span>
       </header>
+
+      <button class="chat-link" type="button" @click="router.push(`/rider/trips/${order.id}/chat`)">
+        Chat <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
+      </button>
 
       <AutoCancelCountdown v-if="order.status === 'matching'" :seconds="countdownSeconds" />
 
@@ -164,6 +188,29 @@ h3 {
   text-transform: capitalize;
   border: 1px solid var(--color-border);
   background: rgba(67, 97, 238, 0.18);
+}
+
+.chat-link {
+  width: fit-content;
+  border: 1px solid var(--color-border);
+  background: rgba(67, 97, 238, 0.16);
+  color: var(--color-text);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.badge {
+  display: inline-grid;
+  place-items: center;
+  margin-left: 6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(239, 71, 111, 0.82);
+  color: #fff;
+  font-size: 0.75rem;
 }
 
 .timeline-wrapper,

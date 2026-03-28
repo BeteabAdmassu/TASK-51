@@ -120,6 +120,7 @@ onBeforeUnmount(() => {
         <OrderTimeline :logs="ride.audit_logs || []" :current-status="ride.status" />
 
         <button class="detail-link" type="button" @click="router.push(`/driver/my-rides/${ride.id}`)">View Full Detail</button>
+        <button class="detail-link" type="button" @click="router.push(`/driver/my-rides/${ride.id}/chat`)">Open Chat</button>
       </article>
 
       <section class="history-section glass-card">

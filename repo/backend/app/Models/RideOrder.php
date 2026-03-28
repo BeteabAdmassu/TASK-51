@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class RideOrder extends Model
 {
@@ -56,5 +57,10 @@ class RideOrder extends Model
     public function auditLogs(): HasMany
     {
         return $this->hasMany(RideOrderAuditLog::class);
+    }
+
+    public function groupChat(): HasOne
+    {
+        return $this->hasOne(GroupChat::class);
     }
 }

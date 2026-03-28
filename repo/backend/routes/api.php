@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DriverRideController;
+use App\Http\Controllers\Api\V1\GroupChatController;
 use App\Http\Controllers\Api\V1\RideOrderController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,4 +37,12 @@ Route::prefix('v1')->group(function (): void {
 
     Route::middleware(['token.not_expired', 'auth:sanctum'])->patch('/ride-orders/{rideOrder}/transition', [RideOrderController::class, 'transition']);
     Route::middleware(['token.not_expired', 'auth:sanctum'])->get('/ride-orders/{rideOrder}', [RideOrderController::class, 'show']);
+
+    Route::middleware(['token.not_expired', 'auth:sanctum'])->group(function (): void {
+        Route::get('/ride-orders/{rideOrder}/chat', [GroupChatController::class, 'showByRide']);
+        Route::post('/group-chats/{chat}/messages', [GroupChatController::class, 'sendMessage']);
+        Route::get('/group-chats/{chat}/messages', [GroupChatController::class, 'getMessages']);
+        Route::post('/group-chats/{chat}/read', [GroupChatController::class, 'markRead']);
+        Route::patch('/group-chats/{chat}/dnd', [GroupChatController::class, 'updateDnd']);
+    });
 });

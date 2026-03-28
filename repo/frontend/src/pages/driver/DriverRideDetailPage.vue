@@ -16,7 +16,9 @@ const ride = ref(null)
 const isLoading = ref(false)
 const actionLoading = ref(false)
 const errorMessage = ref('')
+const unreadCount = ref(0)
 let pollTimer = null
+let unreadPollTimer = null
 
 const fetchRide = async () => {
   isLoading.value = true
@@ -29,6 +31,17 @@ const fetchRide = async () => {
     errorMessage.value = error.response?.data?.message || 'Unable to load ride.'
   } finally {
     isLoading.value = false
+  }
+}
+
+const fetchUnreadCount = async () => {
+  try {
+    const response = await api.get(`/ride-orders/${route.params.id}/chat`)
+    unreadCount.value = response.data.unread_count || 0
+    localStorage.setItem('roadlink_chat_unread_total', String(unreadCount.value))
+  } catch {
+    unreadCount.value = 0
+    localStorage.setItem('roadlink_chat_unread_total', '0')
   }
 }
 
@@ -58,12 +71,18 @@ const handleLogout = async () => {
 
 onMounted(async () => {
   await fetchRide()
+  await fetchUnreadCount()
   pollTimer = setInterval(fetchRide, 15000)
+  unreadPollTimer = setInterval(fetchUnreadCount, 30000)
 })
 
 onBeforeUnmount(() => {
   if (pollTimer) {
     clearInterval(pollTimer)
+  }
+
+  if (unreadPollTimer) {
+    clearInterval(unreadPollTimer)
   }
 })
 </script>
@@ -79,6 +98,9 @@ onBeforeUnmount(() => {
         <p class="helper-text">👤 x {{ ride.rider_count }} · {{ new Date(ride.time_window_start).toLocaleString() }} - {{ new Date(ride.time_window_end).toLocaleTimeString() }}</p>
         <p class="notes" v-if="ride.notes">Rider notes: {{ ride.notes }}</p>
         <span class="status-pill">{{ ride.status.replace('_', ' ') }}</span>
+        <button class="chat-link" type="button" @click="router.push(`/driver/my-rides/${ride.id}/chat`)">
+          Chat <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
+        </button>
       </header>
 
       <section class="glass-card action-panel">
@@ -124,6 +146,30 @@ h2 {
   background: rgba(67, 97, 238, 0.22);
   padding: 6px 12px;
   text-transform: capitalize;
+}
+
+.chat-link {
+  margin-top: var(--space-2);
+  width: fit-content;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: rgba(67, 97, 238, 0.16);
+  color: var(--color-text);
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.badge {
+  display: inline-grid;
+  place-items: center;
+  margin-left: 6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(239, 71, 111, 0.82);
+  color: #fff;
+  font-size: 0.75rem;
 }
 
 .notes {

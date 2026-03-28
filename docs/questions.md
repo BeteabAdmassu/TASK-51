@@ -24,3 +24,13 @@
    - **Question**: How is "nearby-in-time" defined for available rides?
    - **My Understanding**: Include rides whose `time_window_start` is within +/- 2 hours of current time.
    - **Solution**: Implemented configurable `RIDE_AVAILABLE_WINDOW_HOURS` (default `2`) and filtered `matching` rides accordingly.
+
+6. [Read Receipts Behavior]
+   - **Question**: Are read receipts opt-in per user or always on?
+   - **My Understanding**: Read receipts are always on and visible to participants.
+   - **Solution**: Implemented read receipts as default behavior via `message_read_receipts`, with idempotent mark-read API and sender-visible receipt data.
+
+7. [DND Timezone Basis]
+   - **Question**: Should DND use server timezone or user timezone?
+   - **My Understanding**: Use server timezone for now to keep offline logic deterministic.
+   - **Solution**: Implemented DND window checks using server time in `DndService` and documented this behavior.

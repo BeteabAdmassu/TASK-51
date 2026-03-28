@@ -102,3 +102,11 @@ docker compose run --rm frontend npm run test
 - Auto-cancel unmatched rides (10m): `php artisan ride:auto-cancel-unmatched`
 - Auto-revert no-show accepted rides (5m): `php artisan ride:auto-revert-no-show`
 - Both commands are scheduled every minute in `routes/console.php`
+
+## Group Chat
+
+- Chat is automatically created when a ride transitions to `accepted`.
+- Chat is disbanded when rides are `completed`, `canceled`, or remain `exception` for 30+ minutes.
+- Polling-based APIs are used (no WebSockets).
+- Read receipts are always enabled.
+- DND windows currently use **server timezone**.

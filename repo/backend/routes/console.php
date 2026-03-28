@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('ride:auto-cancel-unmatched')->everyMinute();
 Schedule::command('ride:auto-revert-no-show')->everyMinute();
+Schedule::command('ride:disband-stale-exception-chats')->everyMinute();

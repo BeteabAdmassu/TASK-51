@@ -1,4 +1,6 @@
 <script setup>
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+
 const props = defineProps({
   role: {
     type: String,
@@ -10,6 +12,7 @@ const linksByRole = {
   rider: [
     { label: 'Dashboard', to: '/dashboard' },
     { label: 'My Trips', to: '/rider/trips' },
+    { label: 'Chat', to: '/rider/trips', badge: 'chat' },
     { label: 'Shop', to: '/dashboard' },
     { label: 'Notifications', to: '/dashboard' },
     { label: 'Settings', to: '/dashboard' },
@@ -18,6 +21,7 @@ const linksByRole = {
     { label: 'Dashboard', to: '/dashboard' },
     { label: 'Available Rides', to: '/driver/available-rides' },
     { label: 'My Rides', to: '/driver/my-rides' },
+    { label: 'Chat', to: '/driver/my-rides', badge: 'chat' },
     { label: 'Vehicles', to: '/dashboard' },
     { label: 'Notifications', to: '/dashboard' },
     { label: 'Settings', to: '/dashboard' },
@@ -39,6 +43,23 @@ const linksByRole = {
     { label: 'Settings', to: '/dashboard' },
   ],
 }
+
+const chatUnread = ref(Number(localStorage.getItem('roadlink_chat_unread_total') || 0))
+let pollTimer = null
+
+const syncBadge = () => {
+  chatUnread.value = Number(localStorage.getItem('roadlink_chat_unread_total') || 0)
+}
+
+onMounted(() => {
+  pollTimer = setInterval(syncBadge, 3000)
+})
+
+onBeforeUnmount(() => {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+  }
+})
 </script>
 
 <template>
@@ -51,6 +72,7 @@ const linksByRole = {
         :to="link.to"
       >
         {{ link.label }}
+        <span v-if="link.badge === 'chat' && chatUnread > 0" class="link-badge">{{ chatUnread }}</span>
       </RouterLink>
     </nav>
   </aside>
@@ -87,5 +109,23 @@ const linksByRole = {
 .sidebar__links :deep(.router-link-active) {
   background: rgba(67, 97, 238, 0.18);
   transform: translateX(4px);
+}
+
+.sidebar__links :deep(a) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.link-badge {
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  background: rgba(239, 71, 111, 0.85);
+  color: #fff;
+  font-size: 0.72rem;
 }
 </style>

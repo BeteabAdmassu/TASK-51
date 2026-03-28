@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Log;
 
 class RideOrderStateMachine
 {
+    public function __construct(private readonly GroupChatLifecycleService $chatLifecycleService)
+    {
+    }
+
     /**
      * @param  array<string, mixed>  $metadata
      */
@@ -38,6 +42,7 @@ class RideOrderStateMachine
             $transition = $this->resolveTransition($lockedOrder, $action, $actor, $metadata);
 
             $fromStatus = $lockedOrder->status;
+            $previousDriverId = $lockedOrder->driver_id;
             $lockedOrder->fill($transition['updates']);
             $lockedOrder->status = $transition['to_status'];
             $lockedOrder->save();
@@ -59,6 +64,19 @@ class RideOrderStateMachine
                 'action' => $action,
                 'actor_id' => $actor?->id,
             ]);
+
+            $lockedOrder->loadMissing(['rider:id,username', 'driver:id,username']);
+
+            $this->chatLifecycleService->handleRideTransition(
+                $lockedOrder,
+                $fromStatus,
+                $transition['to_status'],
+                [
+                    'previous_driver_id' => $previousDriverId,
+                    'actor_id' => $actor?->id,
+                    'metadata' => $metadata,
+                ],
+            );
 
             return $lockedOrder->fresh(['auditLogs']);
         });

@@ -65,4 +65,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(RideOrder::class, 'driver_id');
     }
+
+    public function chatParticipants(): HasMany
+    {
+        return $this->hasMany(GroupChatParticipant::class);
+    }
+
+    public function chatMessages(): HasMany
+    {
+        return $this->hasMany(GroupMessage::class, 'sender_id');
+    }
 }
