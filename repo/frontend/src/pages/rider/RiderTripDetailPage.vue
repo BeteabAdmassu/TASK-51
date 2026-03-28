@@ -19,6 +19,7 @@ const cancelReason = ref('')
 const isCancelling = ref(false)
 const countdownSeconds = ref(null)
 let countdownTimer = null
+let pollTimer = null
 
 const user = computed(() => authStore.user || { username: 'Guest', role: 'rider' })
 const reassigned = computed(() => (order.value?.audit_logs || []).some((entry) => entry.from_status === 'exception' && entry.to_status === 'matching'))
@@ -86,9 +87,17 @@ const handleLogout = async () => {
 
 onMounted(fetchOrder)
 
+onMounted(() => {
+  pollTimer = setInterval(fetchOrder, 15000)
+})
+
 onBeforeUnmount(() => {
   if (countdownTimer) {
     clearInterval(countdownTimer)
+  }
+
+  if (pollTimer) {
+    clearInterval(pollTimer)
   }
 })
 </script>
@@ -100,6 +109,9 @@ onBeforeUnmount(() => {
         <div>
           <h1>{{ order.origin_address }} → {{ order.destination_address }}</h1>
           <p class="helper-text">👤 x {{ order.rider_count }}</p>
+          <p v-if="['accepted', 'in_progress', 'completed', 'exception'].includes(order.status) && order.driver" class="helper-text">
+            Driver: {{ order.driver.username }}
+          </p>
         </div>
         <span class="status-pill">{{ order.status.replace('_', ' ') }}</span>
       </header>

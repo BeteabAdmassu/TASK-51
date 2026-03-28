@@ -19,3 +19,8 @@
    - **Question**: Should auto-revert create a new order or reuse the same order?
    - **My Understanding**: Reuse the same order record and return it to `matching`.
    - **Solution**: Implemented `reassign` transition on the same order ID, clearing `driver_id` and `accepted_at` and auditing the transition.
+
+5. [Nearby-in-Time Driver Queue]
+   - **Question**: How is "nearby-in-time" defined for available rides?
+   - **My Understanding**: Include rides whose `time_window_start` is within +/- 2 hours of current time.
+   - **Solution**: Implemented configurable `RIDE_AVAILABLE_WINDOW_HOURS` (default `2`) and filtered `matching` rides accordingly.

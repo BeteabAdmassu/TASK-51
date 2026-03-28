@@ -16,8 +16,8 @@ const linksByRole = {
   ],
   driver: [
     { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Available Rides', to: '/dashboard' },
-    { label: 'My Rides', to: '/dashboard' },
+    { label: 'Available Rides', to: '/driver/available-rides' },
+    { label: 'My Rides', to: '/driver/my-rides' },
     { label: 'Vehicles', to: '/dashboard' },
     { label: 'Notifications', to: '/dashboard' },
     { label: 'Settings', to: '/dashboard' },

@@ -7,6 +7,7 @@ use App\Http\Requests\Rides\RideOrderRequest;
 use App\Http\Requests\Rides\RideOrderTransitionRequest;
 use App\Models\RideOrder;
 use App\Models\RideOrderAuditLog;
+use App\Services\DriverScheduleService;
 use App\Services\RideOrderStateMachine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,7 +15,10 @@ use Illuminate\Support\Facades\Log;
 
 class RideOrderController extends Controller
 {
-    public function __construct(private readonly RideOrderStateMachine $stateMachine)
+    public function __construct(
+        private readonly RideOrderStateMachine $stateMachine,
+        private readonly DriverScheduleService $driverScheduleService,
+    )
     {
     }
 
@@ -72,6 +76,7 @@ class RideOrderController extends Controller
         $this->authorize('view', $rideOrder);
 
         $rideOrder->load(['auditLogs' => fn ($query) => $query->orderBy('created_at')]);
+        $rideOrder->load(['driver:id,username']);
 
         return response()->json([
             'order' => $rideOrder,
@@ -82,20 +87,79 @@ class RideOrderController extends Controller
 
     public function transition(RideOrderTransitionRequest $request, RideOrder $rideOrder): JsonResponse
     {
-        $this->authorize('cancel', $rideOrder);
+        $action = $request->validated('action');
+        $actor = $request->user();
+
+        if ($action === 'cancel') {
+            $this->authorize('cancel', $rideOrder);
+        } elseif ($action === 'accept') {
+            if ($rideOrder->status === 'matching') {
+                $this->authorize('accept', $rideOrder);
+            } elseif (! in_array($actor->role, ['driver', 'admin'], true)) {
+                $this->authorize('accept', $rideOrder);
+            }
+
+            if ($rideOrder->status === 'matching' && $this->driverScheduleService->hasOverlap($actor, $rideOrder)) {
+                return response()->json([
+                    'error' => 'schedule_conflict',
+                    'message' => 'You already have a ride during this time window',
+                ], 422);
+            }
+        } else {
+            $this->authorize('driverAction', $rideOrder);
+        }
 
         $order = $this->stateMachine->transition(
             $rideOrder,
-            $request->validated('action'),
-            $request->user(),
-            ['reason' => $request->validated('reason')],
+            $action,
+            $actor,
+            [
+                'reason' => $request->validated('reason'),
+                'exception_reason' => $action === 'flag_exception' ? $request->validated('reason') : null,
+            ],
         );
+
+        if ($action === 'flag_exception') {
+            $this->stateMachine->transition($order, 'reassign', null, [
+                'reason' => 'exception_reassignment',
+                'exception_reason' => $request->validated('reason'),
+            ]);
+        }
+
+        $this->logDriverAction($action, $actor->id, $rideOrder->id, $request->validated('reason'));
 
         return response()->json([
             'order' => $order->load(['auditLogs' => fn ($query) => $query->orderBy('created_at')]),
             'is_cancellable' => in_array($order->status, ['matching', 'accepted'], true),
             'time_until_auto_cancel' => $this->timeUntilAutoCancel($order),
         ]);
+    }
+
+    private function logDriverAction(string $action, int $actorId, int $orderId, ?string $reason): void
+    {
+        if (! in_array($action, ['accept', 'start', 'complete', 'flag_exception'], true)) {
+            return;
+        }
+
+        if ($action === 'flag_exception') {
+            Log::channel('app')->info(
+                sprintf('Driver #%d flagged exception on ride #%d: %s', $actorId, $orderId, (string) $reason),
+                ['driver_id' => $actorId, 'ride_order_id' => $orderId]
+            );
+
+            return;
+        }
+
+        $messages = [
+            'accept' => 'accepted',
+            'start' => 'started',
+            'complete' => 'completed',
+        ];
+
+        Log::channel('app')->info(
+            sprintf('Driver #%d %s ride #%d', $actorId, $messages[$action], $orderId),
+            ['driver_id' => $actorId, 'ride_order_id' => $orderId]
+        );
     }
 
     private function timeUntilAutoCancel(RideOrder $rideOrder): ?int

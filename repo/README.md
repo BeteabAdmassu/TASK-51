@@ -92,6 +92,10 @@ docker compose run --rm frontend npm run test
 - `GET /api/v1/ride-orders` (rider scoped)
 - `GET /api/v1/ride-orders/{id}` (owner/admin via policy)
 - `PATCH /api/v1/ride-orders/{id}/transition` (rider cancel)
+- `GET /api/v1/driver/available-rides` (driver/admin)
+- `GET /api/v1/driver/my-rides` (driver/admin)
+- `GET /api/v1/driver/my-rides/{id}` (driver/admin)
+- `PATCH /api/v1/ride-orders/{id}/transition` (driver actions: `accept`, `start`, `complete`, `flag_exception`)
 
 ## Ride Order Automation
 

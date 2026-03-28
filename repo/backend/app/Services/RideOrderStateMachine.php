@@ -199,7 +199,7 @@ class RideOrderStateMachine
      */
     private function resolveFlagException(RideOrder $order, ?User $actor, array $metadata): array
     {
-        $this->assertCurrentStatus($order, ['in_progress'], 'flag_exception', 'exception');
+        $this->assertCurrentStatus($order, ['accepted', 'in_progress'], 'flag_exception', 'exception');
         $this->assertDriverActor($actor, 'flag_exception');
 
         $reason = isset($metadata['reason']) && is_string($metadata['reason'])

@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import DashboardPage from '@/pages/DashboardPage.vue'
+import DriverAvailableRidesPage from '@/pages/driver/DriverAvailableRidesPage.vue'
+import DriverMyRidesPage from '@/pages/driver/DriverMyRidesPage.vue'
+import DriverRideDetailPage from '@/pages/driver/DriverRideDetailPage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
 import RegisterPage from '@/pages/RegisterPage.vue'
 import RiderTripDetailPage from '@/pages/rider/RiderTripDetailPage.vue'
@@ -50,6 +53,33 @@ const router = createRouter({
       meta: {
         requiresAuth: true,
         roles: ['rider', 'admin'],
+      },
+    },
+    {
+      path: '/driver/available-rides',
+      name: 'driver-available-rides',
+      component: DriverAvailableRidesPage,
+      meta: {
+        requiresAuth: true,
+        roles: ['driver', 'admin'],
+      },
+    },
+    {
+      path: '/driver/my-rides',
+      name: 'driver-my-rides',
+      component: DriverMyRidesPage,
+      meta: {
+        requiresAuth: true,
+        roles: ['driver', 'admin'],
+      },
+    },
+    {
+      path: '/driver/my-rides/:id',
+      name: 'driver-ride-detail',
+      component: DriverRideDetailPage,
+      meta: {
+        requiresAuth: true,
+        roles: ['driver', 'admin'],
       },
     },
   ],
