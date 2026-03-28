@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-primary: #1a1a2e;
+  --color-accent: #4361ee;
+  --color-success: #06d6a0;
+  --color-warning: #ffd166;
+  --color-error: #ef476f;
+  --color-bg: #0f1427;
+  --color-bg-soft: #1a1f3a;
+  --color-surface: rgba(33, 41, 71, 0.58);
+  --color-surface-strong: rgba(27, 34, 60, 0.82);
+  --color-border: rgba(116, 146, 255, 0.26);
+  --color-text: #e4e9ff;
+  --color-text-muted: #97a4d0;
+
+  --font-family: 'Inter', 'Segoe UI', sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-11: 44px;
+  --space-12: 48px;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  --shadow-sm: 0 6px 18px rgba(41, 76, 204, 0.2);
+  --shadow-md: 0 14px 36px rgba(23, 46, 132, 0.26);
+  --shadow-lg: 0 22px 60px rgba(20, 36, 109, 0.34);
+
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+}
+
+:root[data-theme='light'] {
+  --color-primary: #151a2d;
+  --color-accent: #1f49f2;
+  --color-bg: #f2f5ff;
+  --color-bg-soft: #dce4ff;
+  --color-surface: rgba(255, 255, 255, 0.78);
+  --color-surface-strong: rgba(255, 255, 255, 0.95);
+  --color-border: rgba(67, 97, 238, 0.24);
+  --color-text: #1d2748;
+  --color-text-muted: #5a678f;
+}
