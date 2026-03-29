@@ -9,10 +9,13 @@ use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\NotificationSubscriptionController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\RecommendationController;
+use App\Http\Controllers\Api\V1\ReadinessController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\RideOrderController;
 use App\Http\Controllers\Api\V1\VehicleController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/v1/readiness', ReadinessController::class);
 
 Route::prefix('v1')->middleware('idempotency')->group(function (): void {
     Route::prefix('auth')->group(function (): void {

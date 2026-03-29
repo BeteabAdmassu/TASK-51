@@ -5,6 +5,7 @@ namespace Tests\Feature\Rides;
 use App\Models\RideOrder;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -64,6 +65,32 @@ class DriverTransitionTest extends TestCase
             ->assertJsonPath('order.status', 'completed');
 
         $this->assertNotNull($ride->fresh()->completed_at);
+    }
+
+    public function test_driver_complete_does_not_500_when_notification_frequency_type_column_is_missing(): void
+    {
+        Schema::partialMock()
+            ->shouldReceive('hasColumn')
+            ->with('notification_frequency_logs', 'type')
+            ->andReturn(false);
+
+        $driver = User::factory()->create(['role' => 'driver']);
+        $rider = User::factory()->create(['role' => 'rider']);
+        $ride = RideOrder::factory()->create([
+            'rider_id' => $rider->id,
+            'status' => 'in_progress',
+            'driver_id' => $driver->id,
+            'accepted_at' => now()->subMinutes(5),
+            'started_at' => now()->subMinutes(4),
+        ]);
+
+        Sanctum::actingAs($driver);
+
+        $this->patchJson('/api/v1/ride-orders/'.$ride->id.'/transition', ['action' => 'complete'])
+            ->assertStatus(200)
+            ->assertJsonPath('order.status', 'completed');
+
+        $this->assertDatabaseCount('notification_frequency_logs', 1);
     }
 
     public function test_driver_flags_exception_with_reason_and_audit_metadata(): void

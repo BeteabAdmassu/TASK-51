@@ -56,3 +56,23 @@ If any step fails, confirm DB connectivity (`DB_*` values in `.env`) and require
 - `SESSION_LIFETIME` defaults to `720` minutes (12-hour web session window).
 - Notification channels are selected via `ROADLINK_NOTIFICATION_CHANNELS` (default `in_app`).
 - SMS delivery adapter can be listed as a channel, but is disabled by default unless `ROADLINK_SMS_ENABLED=true`.
+
+## Readiness + Schema Drift Recovery
+
+- `GET /api/v1/readiness` reports whether runtime schema is ready for ride completion notifications.
+- If `notification_frequency_type_column` is `false`, ride completion still degrades safely, but you should migrate immediately.
+- Application startup logs a warning when `notification_frequency_logs.type` is missing.
+
+Local non-Docker recovery steps from `repo/backend`:
+
+```bash
+php artisan migrate
+php artisan optimize:clear
+php artisan test
+```
+
+For SQLite local verification (no MySQL driver):
+
+```bash
+DB_CONNECTION=sqlite DB_DATABASE="$(pwd)/database/database.sqlite" php artisan migrate
+```

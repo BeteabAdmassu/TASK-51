@@ -6,10 +6,14 @@ use App\Models\Notification;
 use App\Models\NotificationFrequencyLog;
 use App\Models\NotificationSubscription;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class NotificationService
 {
+    private ?bool $supportsFrequencyTypeColumn = null;
+
     public function __construct(private readonly NotificationChannelManager $channelManager)
     {
     }
@@ -40,12 +44,7 @@ class NotificationService
                 'created_at' => now(),
             ]);
 
-            NotificationFrequencyLog::query()->create([
-                'user_id' => $user->id,
-                'priority' => $priority,
-                'type' => $type,
-                'created_at' => now(),
-            ]);
+            $this->recordFrequencyLog($user, $priority, $type);
 
             return $notification;
         });
@@ -98,13 +97,86 @@ class NotificationService
             return $count >= 3;
         }
 
-        $count = NotificationFrequencyLog::query()
-            ->where('user_id', $user->id)
-            ->where('priority', 'normal')
-            ->where('type', $type)
-            ->whereDate('created_at', now()->toDateString())
-            ->count();
+        $count = $this->countNormalNotifications($user, $type);
 
         return $count >= 20;
+    }
+
+    private function countNormalNotifications(User $user, string $type): int
+    {
+        if ($this->supportsTypeColumn()) {
+            try {
+                return NotificationFrequencyLog::query()
+                    ->where('user_id', $user->id)
+                    ->where('priority', 'normal')
+                    ->where('type', $type)
+                    ->whereDate('created_at', now()->toDateString())
+                    ->count();
+            } catch (QueryException $exception) {
+                if (! $this->isMissingTypeColumnException($exception)) {
+                    throw $exception;
+                }
+
+                $this->supportsFrequencyTypeColumn = false;
+            }
+        }
+
+        return NotificationFrequencyLog::query()
+            ->where('user_id', $user->id)
+            ->where('priority', 'normal')
+            ->whereDate('created_at', now()->toDateString())
+            ->count();
+    }
+
+    private function recordFrequencyLog(User $user, string $priority, string $type): void
+    {
+        if ($this->supportsTypeColumn()) {
+            try {
+                NotificationFrequencyLog::query()->create([
+                    'user_id' => $user->id,
+                    'priority' => $priority,
+                    'type' => $type,
+                    'created_at' => now(),
+                ]);
+
+                return;
+            } catch (QueryException $exception) {
+                if (! $this->isMissingTypeColumnException($exception)) {
+                    throw $exception;
+                }
+
+                $this->supportsFrequencyTypeColumn = false;
+            }
+        }
+
+        NotificationFrequencyLog::query()->create([
+            'user_id' => $user->id,
+            'priority' => $priority,
+            'created_at' => now(),
+        ]);
+    }
+
+    private function isMissingTypeColumnException(QueryException $exception): bool
+    {
+        $message = strtolower($exception->getMessage());
+
+        return str_contains($message, "unknown column 'type'")
+            || str_contains($message, 'no such column: type')
+            || str_contains($message, 'column "type" does not exist');
+    }
+
+    private function supportsTypeColumn(): bool
+    {
+        if ($this->supportsFrequencyTypeColumn !== null) {
+            return $this->supportsFrequencyTypeColumn;
+        }
+
+        try {
+            $this->supportsFrequencyTypeColumn = Schema::hasColumn('notification_frequency_logs', 'type');
+        } catch (\Throwable) {
+            $this->supportsFrequencyTypeColumn = false;
+        }
+
+        return $this->supportsFrequencyTypeColumn;
     }
 }

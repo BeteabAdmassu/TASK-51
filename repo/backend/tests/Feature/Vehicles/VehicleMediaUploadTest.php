@@ -108,7 +108,7 @@ class VehicleMediaUploadTest extends TestCase
         ])->assertStatus(422);
     }
 
-    public function test_extension_mismatch_jpg_name_with_png_content_is_accepted(): void
+    public function test_extension_mismatch_jpg_name_with_png_content_is_rejected(): void
     {
         Storage::fake('local');
         Queue::fake();
@@ -117,13 +117,13 @@ class VehicleMediaUploadTest extends TestCase
         $vehicle = Vehicle::factory()->create(['owner_id' => $driver->id]);
         Sanctum::actingAs($driver);
 
-        $png = UploadedFile::fake()->image('real.png');
-        $content = file_get_contents($png->getRealPath());
-        $mismatch = UploadedFile::fake()->createWithContent('mismatch.jpg', $content ?: '');
+        $mismatch = UploadedFile::fake()->create('mismatch.jpg', 100, 'image/png');
 
         $this->post('/api/v1/vehicles/'.$vehicle->id.'/media', [
             'file' => $mismatch,
-        ])->assertStatus(201);
+        ])->assertStatus(422)
+            ->assertJsonPath('message', 'Request validation failed')
+            ->assertJsonPath('details.file.0', 'File extension must match the uploaded file type (jpg/jpeg -> image/jpeg, png -> image/png, mp4 -> video/mp4)');
     }
 
     public function test_sha256_deduplication_reuses_single_media_asset_across_vehicles(): void

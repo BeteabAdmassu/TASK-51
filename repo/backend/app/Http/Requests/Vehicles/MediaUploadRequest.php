@@ -37,9 +37,19 @@ class MediaUploadRequest extends FormRequest
 
             $allowedExtensions = config('media.allowed_extensions', []);
             $allowedMimeTypes = config('media.allowed_mime_types', []);
+            $allowedPairs = [
+                'image/jpeg' => ['jpg', 'jpeg'],
+                'image/png' => ['png'],
+                'video/mp4' => ['mp4'],
+            ];
 
             if (! in_array($extension, $allowedExtensions, true) || ! in_array($mimeType, $allowedMimeTypes, true)) {
                 $validator->errors()->add('file', 'Only JPEG, PNG images (max 8MB) and MP4 videos (max 200MB) are allowed');
+                return;
+            }
+
+            if (! in_array($extension, $allowedPairs[$mimeType] ?? [], true)) {
+                $validator->errors()->add('file', 'File extension must match the uploaded file type (jpg/jpeg -> image/jpeg, png -> image/png, mp4 -> video/mp4)');
                 return;
             }
 

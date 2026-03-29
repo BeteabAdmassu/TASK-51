@@ -28,7 +28,7 @@ const form = ref({
   notes: '',
 })
 
-const tabs = ['all', 'matching', 'accepted', 'in_progress', 'completed', 'canceled']
+const tabs = ['all', 'matching', 'accepted', 'in_progress', 'exception', 'completed', 'canceled']
 
 const filteredOrders = computed(() => {
   if (activeTab.value === 'all') {
