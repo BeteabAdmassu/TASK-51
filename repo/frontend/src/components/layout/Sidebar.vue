@@ -15,7 +15,7 @@ const linksByRole = {
     { label: 'Chat', to: '/rider/trips', badge: 'chat' },
     { label: 'Shop', to: '/shop/products' },
     { label: 'Notifications', to: '/dashboard' },
-    { label: 'Settings', to: '/dashboard' },
+    { label: 'Settings', to: '/settings/notifications' },
   ],
   driver: [
     { label: 'Dashboard', to: '/dashboard' },
@@ -25,7 +25,7 @@ const linksByRole = {
     { label: 'Shop', to: '/shop/products' },
     { label: 'Vehicles', to: '/vehicles' },
     { label: 'Notifications', to: '/dashboard' },
-    { label: 'Settings', to: '/dashboard' },
+    { label: 'Settings', to: '/settings/notifications' },
   ],
   fleet_manager: [
     { label: 'Dashboard', to: '/dashboard' },
@@ -33,7 +33,7 @@ const linksByRole = {
     { label: 'Products', to: '/products/manage' },
     { label: 'Reports', to: '/dashboard' },
     { label: 'Notifications', to: '/dashboard' },
-    { label: 'Settings', to: '/dashboard' },
+    { label: 'Settings', to: '/settings/notifications' },
   ],
   admin: [
     { label: 'Dashboard', to: '/dashboard' },
@@ -42,7 +42,7 @@ const linksByRole = {
     { label: 'Products', to: '/products/manage' },
     { label: 'Reports', to: '/dashboard' },
     { label: 'Notifications', to: '/dashboard' },
-    { label: 'Settings', to: '/dashboard' },
+    { label: 'Settings', to: '/settings/notifications' },
   ],
 }
 

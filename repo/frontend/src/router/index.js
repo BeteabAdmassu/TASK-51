@@ -13,6 +13,7 @@ import LoginPage from '@/pages/LoginPage.vue'
 import RegisterPage from '@/pages/RegisterPage.vue'
 import RiderTripDetailPage from '@/pages/rider/RiderTripDetailPage.vue'
 import RiderTripsPage from '@/pages/rider/RiderTripsPage.vue'
+import NotificationSettingsPage from '@/pages/settings/NotificationSettingsPage.vue'
 import { useAuthStore } from '@/stores/authStore'
 
 const router = createRouter({
@@ -149,6 +150,15 @@ const router = createRouter({
       meta: {
         requiresAuth: true,
         roles: ['rider', 'driver', 'admin'],
+      },
+    },
+    {
+      path: '/settings/notifications',
+      name: 'settings-notifications',
+      component: NotificationSettingsPage,
+      meta: {
+        requiresAuth: true,
+        roles: ['rider', 'driver', 'fleet_manager', 'admin'],
       },
     },
   ],

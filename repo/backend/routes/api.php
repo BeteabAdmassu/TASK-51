@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DriverRideController;
 use App\Http\Controllers\Api\V1\GroupChatController;
 use App\Http\Controllers\Api\V1\MediaController;
+use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\Api\V1\NotificationSubscriptionController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\RideOrderController;
 use App\Http\Controllers\Api\V1\VehicleController;
@@ -67,6 +69,15 @@ Route::prefix('v1')->group(function (): void {
     Route::middleware(['token.not_expired', 'auth:sanctum'])->group(function (): void {
         Route::get('/products', [ProductController::class, 'index']);
         Route::get('/products/{product}', [ProductController::class, 'show']);
+
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+        Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+
+        Route::get('/notification-subscriptions', [NotificationSubscriptionController::class, 'index']);
+        Route::post('/notification-subscriptions', [NotificationSubscriptionController::class, 'store']);
+        Route::delete('/notification-subscriptions/{notificationSubscription}', [NotificationSubscriptionController::class, 'destroy']);
     });
 
     Route::middleware(['token.not_expired', 'auth:sanctum', 'role:fleet_manager,admin'])->group(function (): void {

@@ -49,3 +49,8 @@
    - **Question**: For `shared` inventory strategy, is stock tracked per variant or pooled across shared variants of the same product?
    - **My Understanding**: Shared inventory is pooled across all `shared` variants belonging to a single product.
    - **Solution**: Implemented pooled stock checks/decrements across all locked `shared` variants under the same product during purchase.
+
+11. [Suppressed Notifications Handling]
+   - **Question**: What happens to notifications suppressed by frequency caps?
+   - **My Understanding**: Suppressed notifications are silently dropped. The prompt says alerts are constrained to a maximum, which implies hard limits and no delayed queueing.
+   - **Solution**: Implemented strict cap enforcement that discards suppressed notifications and does not enqueue them for later delivery.
