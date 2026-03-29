@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Notifications\Channels\EmailChannel;
 use App\Notifications\Channels\InAppChannel;
 use App\Notifications\Channels\NotificationChannelInterface;
+use App\Notifications\Channels\SmsChannel;
 
 class NotificationChannelManager
 {
@@ -20,6 +21,7 @@ class NotificationChannelManager
             $channel = match ($name) {
                 'in_app' => app(InAppChannel::class),
                 'email' => app(EmailChannel::class),
+                'sms' => config('roadlink.sms.enabled', false) ? app(SmsChannel::class) : null,
                 default => null,
             };
 

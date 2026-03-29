@@ -19,7 +19,7 @@ class NotificationCapsTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_normal_priority_cap_is_20_per_day(): void
+    public function test_normal_priority_cap_is_20_per_day_per_type(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-03-30 09:00:00'));
         $user = User::factory()->create(['role' => 'rider']);
@@ -29,7 +29,11 @@ class NotificationCapsTest extends TestCase
             $service->send($user, 'reply', 'Reply', 'body');
         }
 
-        $this->assertDatabaseCount('notifications', 20);
+        for ($i = 0; $i < 21; $i++) {
+            $service->send($user, 'mention', 'Mention', 'body');
+        }
+
+        $this->assertDatabaseCount('notifications', 40);
     }
 
     public function test_high_priority_cap_is_3_per_hour(): void

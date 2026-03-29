@@ -65,6 +65,7 @@ Auth behavior:
 
 - SPA auth uses secure cookie-backed session (`auth:sanctum`) with CSRF protection
 - backend must expose `GET /sanctum/csrf-cookie` and allow credentials from frontend origin
+- logout and account-switch flows purge auth-scoped service-worker caches (rides/chat) to prevent cross-user cached API leakage
 
 If backend/runtime is unavailable in your environment, use:
 
@@ -89,6 +90,10 @@ docker compose up --build frontend
 
 - Full stack end-to-end verification depends on backend + MySQL running.
 - Offline queue replay and service worker behavior are integration-tested at service/unit level in Vitest; browser-level SW assertions are not fully simulated in jsdom.
+
+## Dashboard Summary Cards
+
+- Dashboard cards now consume live API summaries (`/ride-orders` or `/driver/my-rides`, `/products`, `/notifications/unread-count`) instead of placeholder text.
 
 ## Security Note (Session Auth)
 

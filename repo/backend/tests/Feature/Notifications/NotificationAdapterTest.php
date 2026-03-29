@@ -35,4 +35,30 @@ class NotificationAdapterTest extends TestCase
 
         Log::shouldHaveReceived('debug')->once();
     }
+
+    public function test_sms_channel_does_not_deliver_when_disabled_even_if_listed(): void
+    {
+        config()->set('roadlink.channels', ['in_app', 'sms']);
+        config()->set('roadlink.sms.enabled', false);
+
+        $user = User::factory()->create(['role' => 'rider', 'email' => 'notify@example.com']);
+
+        Log::spy();
+        app(NotificationService::class)->send($user, 'reply', 'Reply', 'You got a reply');
+
+        Log::shouldNotHaveReceived('debug');
+    }
+
+    public function test_sms_channel_logs_when_enabled(): void
+    {
+        config()->set('roadlink.channels', ['in_app', 'sms']);
+        config()->set('roadlink.sms.enabled', true);
+
+        $user = User::factory()->create(['role' => 'rider', 'email' => 'notify@example.com']);
+
+        Log::spy();
+        app(NotificationService::class)->send($user, 'reply', 'Reply', 'You got a reply');
+
+        Log::shouldHaveReceived('debug')->once();
+    }
 }

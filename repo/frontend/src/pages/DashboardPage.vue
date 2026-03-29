@@ -14,6 +14,57 @@ const user = computed(() => authStore.user || { username: 'Guest', role: 'rider'
 const recommendations = ref([])
 const recommendationError = ref('')
 const canShop = computed(() => ['rider', 'driver', 'admin'].includes(user.value.role))
+const summaryError = ref('')
+const summaryCards = ref({
+  trips: { value: 0, description: 'Total rides assigned to your dashboard role.' },
+  inventory: { value: 0, description: 'Visible catalog products available in the app.' },
+  notifications: { value: 0, description: 'Unread alerts currently waiting in your inbox.' },
+})
+
+const extractTotal = (payload) => Number(payload?.total || 0)
+
+const fetchTripsSummary = async () => {
+  if (user.value.role === 'rider') {
+    const response = await api.get('/ride-orders', { params: { per_page: 1 } })
+    return extractTotal(response.data)
+  }
+
+  if (['driver', 'admin'].includes(user.value.role)) {
+    const response = await api.get('/driver/my-rides', { params: { per_page: 1 } })
+    return extractTotal(response.data)
+  }
+
+  return 0
+}
+
+const fetchDashboardSummary = async () => {
+  summaryError.value = ''
+
+  try {
+    const [trips, productsResponse, unreadResponse] = await Promise.all([
+      fetchTripsSummary(),
+      api.get('/products'),
+      api.get('/notifications/unread-count'),
+    ])
+
+    summaryCards.value = {
+      trips: {
+        value: trips,
+        description: 'Total rides assigned to your dashboard role.',
+      },
+      inventory: {
+        value: (productsResponse.data?.data || []).length,
+        description: 'Visible catalog products available in the app.',
+      },
+      notifications: {
+        value: Number(unreadResponse.data?.unread_count || 0),
+        description: 'Unread alerts currently waiting in your inbox.',
+      },
+    }
+  } catch (err) {
+    summaryError.value = err.response?.data?.message || 'Could not load dashboard summary.'
+  }
+}
 
 const fetchRecommendations = async () => {
   if (!canShop.value) {
@@ -35,7 +86,9 @@ const handleLogout = async () => {
   await router.push('/login')
 }
 
-onMounted(fetchRecommendations)
+onMounted(async () => {
+  await Promise.all([fetchRecommendations(), fetchDashboardSummary()])
+})
 </script>
 
 <template>
@@ -47,20 +100,25 @@ onMounted(fetchRecommendations)
 
     <p class="helper-text">Your role-based dashboard shell is ready for trip, vehicle, and commerce modules.</p>
 
+    <p v-if="summaryError" class="error">{{ summaryError }}</p>
+
     <section class="stats-grid">
       <Card>
         <h3>Trips</h3>
-        <p class="helper-text">No data yet. Metrics will appear once trip workflows are enabled.</p>
+        <p class="stat-value">{{ summaryCards.trips.value }}</p>
+        <p class="helper-text">{{ summaryCards.trips.description }}</p>
       </Card>
 
       <Card>
         <h3>Inventory</h3>
-        <p class="helper-text">No data yet. Product modules will attach stock snapshots here.</p>
+        <p class="stat-value">{{ summaryCards.inventory.value }}</p>
+        <p class="helper-text">{{ summaryCards.inventory.description }}</p>
       </Card>
 
       <Card>
         <h3>Notifications</h3>
-        <p class="helper-text">No data yet. Notification center integration is queued in next prompts.</p>
+        <p class="stat-value">{{ summaryCards.notifications.value }}</p>
+        <p class="helper-text">{{ summaryCards.notifications.description }}</p>
       </Card>
     </section>
 
@@ -173,6 +231,12 @@ h1 {
 
 h3 {
   margin-top: 0;
+}
+
+.stat-value {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.8vw, 1.9rem);
+  font-weight: 700;
 }
 
 @media (max-width: 980px) {

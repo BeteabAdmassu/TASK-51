@@ -5,4 +5,8 @@ return [
         static fn (string $value): string => trim($value),
         explode(',', env('ROADLINK_NOTIFICATION_CHANNELS', 'in_app'))
     ))),
+
+    'sms' => [
+        'enabled' => filter_var(env('ROADLINK_SMS_ENABLED', false), FILTER_VALIDATE_BOOL),
+    ],
 ];

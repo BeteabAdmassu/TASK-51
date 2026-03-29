@@ -157,6 +157,25 @@ export const clearOfflineQueue = async () => {
   await clearPendingActions()
 }
 
+export const purgeAuthCaches = async () => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  if (typeof caches !== 'undefined' && typeof caches.keys === 'function') {
+    const cacheNames = await caches.keys()
+    await Promise.all(
+      cacheNames
+        .filter((name) => name.startsWith('roadlink-rides-cache') || name.startsWith('roadlink-chat-cache'))
+        .map((name) => caches.delete(name)),
+    )
+  }
+
+  if (navigator.serviceWorker?.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'ROADLINK_PURGE_AUTH_CACHES' })
+  }
+}
+
 export const ensureCsrfCookie = async () => {
   await axios.get(`${API_ORIGIN}/sanctum/csrf-cookie`, {
     withCredentials: true,

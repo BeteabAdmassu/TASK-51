@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAuthStore } from '@/stores/authStore'
-import api, { clearOfflineQueue, ensureCsrfCookie } from '@/services/api'
+import api, { clearOfflineQueue, ensureCsrfCookie, purgeAuthCaches } from '@/services/api'
 
 vi.mock('@/services/api', () => ({
   default: {
@@ -10,6 +10,7 @@ vi.mock('@/services/api', () => ({
   },
   clearOfflineQueue: vi.fn(),
   ensureCsrfCookie: vi.fn(),
+  purgeAuthCaches: vi.fn(),
 }))
 
 describe('authStore', () => {
@@ -61,6 +62,7 @@ describe('authStore', () => {
     expect(store.isAuthenticated).toBe(false)
     expect(localStorage.getItem('roadlink_user')).toBeNull()
     expect(clearOfflineQueue).toHaveBeenCalled()
+    expect(purgeAuthCaches).toHaveBeenCalled()
   })
 
   it('initialize restores session-backed user', async () => {
@@ -81,6 +83,7 @@ describe('authStore', () => {
     store.persistSession({ id: 2, username: 'driver01', role: 'driver' })
 
     expect(clearOfflineQueue).toHaveBeenCalled()
+    expect(purgeAuthCaches).toHaveBeenCalled()
   })
 
   it('forceLogout clears sensitive local/session artifacts', () => {
@@ -98,5 +101,6 @@ describe('authStore', () => {
     expect(sessionStorage.getItem('roadlink_toast_message')).toBeNull()
     expect(sessionStorage.getItem('roadlink_toast_type')).toBeNull()
     expect(clearOfflineQueue).toHaveBeenCalled()
+    expect(purgeAuthCaches).toHaveBeenCalled()
   })
 })

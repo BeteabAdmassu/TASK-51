@@ -50,3 +50,9 @@ If any step fails, confirm DB connectivity (`DB_*` values in `.env`) and require
 
 - Report downloads require: valid signed URL + `auth:sanctum` + non-expired token + role (`admin`/`fleet_manager`) + ownership authorization.
 - Media downloads require signed URL and object-level owner/admin checks.
+
+## Session + Notification Config
+
+- `SESSION_LIFETIME` defaults to `720` minutes (12-hour web session window).
+- Notification channels are selected via `ROADLINK_NOTIFICATION_CHANNELS` (default `in_app`).
+- SMS delivery adapter can be listed as a channel, but is disabled by default unless `ROADLINK_SMS_ENABLED=true`.

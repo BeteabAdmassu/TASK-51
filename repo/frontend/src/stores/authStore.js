@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import api, { clearOfflineQueue, ensureCsrfCookie } from '@/services/api'
+import api, { clearOfflineQueue, ensureCsrfCookie, purgeAuthCaches } from '@/services/api'
 
 const USER_KEY = 'roadlink_user'
 
@@ -22,6 +22,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem(USER_KEY, JSON.stringify(user))
 
       if (previousUserId && previousUserId !== user.id) {
+        void purgeAuthCaches()
         clearOfflineQueue()
       }
     },
@@ -34,6 +35,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('roadlink_chat_unread_total')
       sessionStorage.removeItem('roadlink_toast_message')
       sessionStorage.removeItem('roadlink_toast_type')
+      void purgeAuthCaches()
       clearOfflineQueue()
     },
 

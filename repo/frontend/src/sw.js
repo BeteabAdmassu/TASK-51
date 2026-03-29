@@ -1,7 +1,19 @@
 /// <reference lib="webworker" />
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { registerRoute } from 'workbox-routing'
-import { NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies'
+import { StaleWhileRevalidate } from 'workbox-strategies'
+
+const AUTH_CACHE_NAMES = ['roadlink-rides-cache', 'roadlink-chat-cache']
+
+const purgeAuthCaches = async () => {
+  const cacheNames = await caches.keys()
+
+  await Promise.all(
+    cacheNames
+      .filter((name) => AUTH_CACHE_NAMES.some((prefix) => name.startsWith(prefix)))
+      .map((name) => caches.delete(name)),
+  )
+}
 
 precacheAndRoute(self.__WB_MANIFEST)
 cleanupOutdatedCaches()
@@ -16,12 +28,8 @@ registerRoute(
   new StaleWhileRevalidate({ cacheName: 'roadlink-shell-assets' }),
 )
 
-registerRoute(
-  ({ url, request }) => request.method === 'GET' && url.pathname.startsWith('/api/v1/ride-orders'),
-  new NetworkFirst({ cacheName: 'roadlink-rides-cache', networkTimeoutSeconds: 3 }),
-)
-
-registerRoute(
-  ({ url, request }) => request.method === 'GET' && /\/api\/v1\/group-chats\/[^/]+\/messages/.test(url.pathname),
-  new NetworkFirst({ cacheName: 'roadlink-chat-cache', networkTimeoutSeconds: 3 }),
-)
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'ROADLINK_PURGE_AUTH_CACHES') {
+    event.waitUntil(purgeAuthCaches())
+  }
+})

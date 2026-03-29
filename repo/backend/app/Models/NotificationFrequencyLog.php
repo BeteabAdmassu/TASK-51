@@ -15,6 +15,7 @@ class NotificationFrequencyLog extends Model
     protected $fillable = [
         'user_id',
         'priority',
+        'type',
         'created_at',
     ];
 

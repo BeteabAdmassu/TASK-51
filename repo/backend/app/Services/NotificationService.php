@@ -21,7 +21,7 @@ class NotificationService
     {
         $priority = $this->determinePriority($user, $type, $data);
 
-        if ($this->isSuppressed($user, $priority)) {
+        if ($this->isSuppressed($user, $priority, $type)) {
             return null;
         }
 
@@ -43,6 +43,7 @@ class NotificationService
             NotificationFrequencyLog::query()->create([
                 'user_id' => $user->id,
                 'priority' => $priority,
+                'type' => $type,
                 'created_at' => now(),
             ]);
 
@@ -85,7 +86,7 @@ class NotificationService
         return 'normal';
     }
 
-    private function isSuppressed(User $user, string $priority): bool
+    private function isSuppressed(User $user, string $priority, string $type): bool
     {
         if ($priority === 'high') {
             $count = NotificationFrequencyLog::query()
@@ -100,6 +101,7 @@ class NotificationService
         $count = NotificationFrequencyLog::query()
             ->where('user_id', $user->id)
             ->where('priority', 'normal')
+            ->where('type', $type)
             ->whereDate('created_at', now()->toDateString())
             ->count();
 

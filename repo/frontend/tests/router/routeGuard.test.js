@@ -10,6 +10,7 @@ vi.mock('@/services/api', () => ({
     delete: vi.fn(),
   },
   clearOfflineQueue: vi.fn(),
+  purgeAuthCaches: vi.fn(),
   setUnauthorizedHandler: vi.fn(),
   syncPendingActions: vi.fn(),
 }))

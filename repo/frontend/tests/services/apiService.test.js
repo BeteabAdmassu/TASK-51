@@ -82,6 +82,33 @@ describe('api offline queue', () => {
     expect(clearPendingActions).toHaveBeenCalledTimes(1)
   })
 
+  it('purges auth-related SW caches on logout or user switch', async () => {
+    const postMessage = vi.fn()
+    const keys = vi.fn().mockResolvedValue(['roadlink-rides-cache-v1', 'roadlink-chat-cache-v1', 'roadlink-shell-assets'])
+    const del = vi.fn().mockResolvedValue(true)
+
+    Object.defineProperty(globalThis, 'caches', {
+      configurable: true,
+      value: { keys, delete: del },
+    })
+    Object.defineProperty(globalThis, 'navigator', {
+      configurable: true,
+      value: {
+        ...(globalThis.navigator || {}),
+        serviceWorker: { controller: { postMessage } },
+      },
+    })
+
+    const { purgeAuthCaches } = await import('@/services/api')
+    await purgeAuthCaches()
+
+    expect(keys).toHaveBeenCalledTimes(1)
+    expect(del).toHaveBeenCalledWith('roadlink-rides-cache-v1')
+    expect(del).toHaveBeenCalledWith('roadlink-chat-cache-v1')
+    expect(del).not.toHaveBeenCalledWith('roadlink-shell-assets')
+    expect(postMessage).toHaveBeenCalledWith({ type: 'ROADLINK_PURGE_AUTH_CACHES' })
+  })
+
   it('does not replay another users queued actions', async () => {
     const { syncPendingActions, __setOnlineStateForTests } = await import('@/services/api')
     __setOnlineStateForTests(true)
