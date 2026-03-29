@@ -1,54 +1,48 @@
 # RoadLink Mobility Commerce Platform
 
-Monorepo scaffold for an offline-capable commerce + mobility platform.
+Offline-capable mobility + commerce platform built with Laravel + Vue.
 
-## Stack
+## Project Structure
 
-- Backend: Laravel 11 (`repo/backend`)
-- Frontend: Vue 3 + Vite + Pinia (`repo/frontend`)
-- Database: MySQL 8
-- Auth: Local username/password with Sanctum tokens
+```text
+repo/
+├── backend/                    # Laravel 11 API, scheduler jobs, queues, tests
+├── frontend/                   # Vue 3 SPA, PWA service worker, Vitest suite
+├── docker-compose.yml          # One-click stack (mysql, backend, frontend, scheduler)
+└── Makefile                    # Convenience wrappers
 
-## Quick Start (Docker)
-
-1. From `repo/`, run:
-
-   ```bash
-   make setup
-   ```
-
-2. Access apps:
-   - Frontend: `http://localhost:3000`
-   - Backend API: `http://localhost:8000/api/v1`
-
-3. Stop services:
-
-   ```bash
-   make down
-   ```
-
-## Manual Start (without Docker)
-
-Backend (`repo/backend`):
-
-```bash
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate
-php artisan db:seed
-php artisan serve --host=0.0.0.0 --port=8000
+../docs/
+├── api-spec.md                 # Endpoint catalog
+├── design.md                   # Architecture + state machine diagrams
+└── questions.md                # Ambiguity decisions from all sessions
 ```
 
-Frontend (`repo/frontend`):
+## Quick Start (Docker Compose)
+
+From `repo/`:
 
 ```bash
-npm install
-cp .env.example .env
-npm run dev -- --host 0.0.0.0 --port 3000
+docker compose up --build
 ```
 
-## Seeded Users
+What starts automatically:
+
+- `mysql` with persistent volume (`mysql_data`)
+- `backend` on `http://localhost:8000`
+  - runs `composer install`
+  - creates `.env` from `.env.example` when missing
+  - generates app key when needed
+  - runs migrations and seeding when DB is empty
+  - runs `php artisan storage:link`
+- `frontend` on `http://localhost:3000`
+  - runs `npm install`
+  - runs Vite dev server
+- `scheduler` service running `php artisan schedule:work`
+  - drives ride timers and recommendation batch jobs
+
+No external map/payment/recommendation APIs are required at runtime.
+
+## Seed Data Credentials
 
 | Username | Password | Role |
 | --- | --- | --- |
@@ -59,66 +53,29 @@ npm run dev -- --host 0.0.0.0 --port 3000
 | driver02 | Driver1234! | driver |
 | fleet01 | Fleet12345! | fleet_manager |
 
-## Authentication Rules Implemented
-
-- Username/password local auth only
-- Password: minimum 10 chars, at least one letter + one number
-- Lockout: 15 minutes after 5 failed attempts
-- Session token expiry: 12 hours
-- Sensitive fields hidden and encrypted at rest (`email`, `phone`)
-
-## Running Tests
+## Testing Instructions
 
 From `repo/`:
 
 ```bash
-make test
+docker compose exec backend php artisan test
+docker compose exec frontend npm run test
 ```
 
-Or individually:
+Frontend build check:
 
 ```bash
-docker compose run --rm backend php artisan test
-docker compose run --rm frontend npm run test
+docker compose exec frontend npm run build
 ```
 
-## Key API Endpoints
+## Scheduler and Batch Jobs
 
-- `POST /api/v1/auth/register`
-- `POST /api/v1/auth/login`
-- `POST /api/v1/auth/logout`
-- `GET /api/v1/auth/me`
-- `POST /api/v1/ride-orders` (rider)
-- `GET /api/v1/ride-orders` (rider scoped)
-- `GET /api/v1/ride-orders/{id}` (owner/admin via policy)
-- `PATCH /api/v1/ride-orders/{id}/transition` (rider cancel)
-- `GET /api/v1/driver/available-rides` (driver/admin)
-- `GET /api/v1/driver/my-rides` (driver/admin)
-- `GET /api/v1/driver/my-rides/{id}` (driver/admin)
-- `PATCH /api/v1/ride-orders/{id}/transition` (driver actions: `accept`, `start`, `complete`, `flag_exception`)
-- `POST /api/v1/vehicles`
-- `GET /api/v1/vehicles`
-- `GET /api/v1/vehicles/{id}`
-- `POST /api/v1/vehicles/{id}/media`
-- `GET /api/v1/media/{id}/url`
+- Backend scheduler is enabled via dedicated `scheduler` service and Laravel `schedule:work`.
+- Recommendation engine runs from scheduled `ComputeRecommendations` job.
+- Ride auto-cancel/revert/disband timers are scheduled in `backend/routes/console.php`.
 
-## Ride Order Automation
+## Docs Index
 
-- Auto-cancel unmatched rides (10m): `php artisan ride:auto-cancel-unmatched`
-- Auto-revert no-show accepted rides (5m): `php artisan ride:auto-revert-no-show`
-- Both commands are scheduled every minute in `routes/console.php`
-
-## Group Chat
-
-- Chat is automatically created when a ride transitions to `accepted`.
-- Chat is disbanded when rides are `completed`, `canceled`, or remain `exception` for 30+ minutes.
-- Polling-based APIs are used (no WebSockets).
-- Read receipts are always enabled.
-- DND windows currently use **server timezone**.
-
-## Vehicle Media Management
-
-- Media files are stored on local disk under `storage/app/media`.
-- SHA-256 deduplication is enabled across uploads.
-- Signed URLs are required for media download access.
-- Compression jobs run through queue (`ProcessMediaAsset`), with graceful FFmpeg fallback for videos.
+- API reference: `../docs/api-spec.md`
+- Architecture and state machine: `../docs/design.md`
+- Ambiguity decisions: `../docs/questions.md`

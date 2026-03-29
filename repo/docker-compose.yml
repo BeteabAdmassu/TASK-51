@@ -32,6 +32,7 @@ services:
       DB_DATABASE: roadlink
       DB_USERNAME: roadlink
       DB_PASSWORD: roadlink
+      QUEUE_CONNECTION: sync
     volumes:
       - ./backend:/var/www/html
     ports:
@@ -39,6 +40,31 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+
+  scheduler:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile
+    container_name: roadlink-scheduler
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: roadlink
+      DB_USERNAME: roadlink
+      DB_PASSWORD: roadlink
+      QUEUE_CONNECTION: sync
+    volumes:
+      - ./backend:/var/www/html
+    command: ["php", "artisan", "schedule:work"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+      backend:
+        condition: service_started
 
   frontend:
     image: node:20-alpine
