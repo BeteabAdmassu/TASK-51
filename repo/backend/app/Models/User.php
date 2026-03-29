@@ -125,4 +125,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(ReportTemplate::class);
     }
+
+    public function reportExports(): HasMany
+    {
+        return $this->hasMany(ReportExport::class);
+    }
 }

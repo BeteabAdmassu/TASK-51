@@ -15,6 +15,7 @@ vi.mock('@/services/api', () => ({
 }))
 
 import router from '@/router'
+import api from '@/services/api'
 import { useAuthStore } from '@/stores/authStore'
 
 describe('route guards', () => {
@@ -45,5 +46,18 @@ describe('route guards', () => {
     await router.push('/reports')
 
     expect(router.currentRoute.value.path).toBe('/reports')
+  })
+
+  it('redirects to login when persisted token is stale', async () => {
+    localStorage.setItem('roadlink_token', 'stale-token')
+    localStorage.setItem('roadlink_user', JSON.stringify({ id: 77, username: 'stale', role: 'admin' }))
+    api.get.mockRejectedValueOnce({ response: { status: 401 } })
+
+    const store = useAuthStore()
+    store.initialized = false
+
+    await router.push('/reports')
+
+    expect(router.currentRoute.value.path).toBe('/login')
   })
 })

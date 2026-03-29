@@ -11,11 +11,20 @@
 .env.*
 !.env.example
 
+# Custom Project Files/Folders
+
+.last-run.json
+test-results/
+
 # Node / Vue (Frontend)
 **/node_modules/
 **/dist/
 **/dist-ssr/
 **/coverage/
+**/test-results/
+**/playwright-report/
+**/blob-report/
+**/playwright/.cache/
 .npm/
 
 # PHP / Laravel (Backend)

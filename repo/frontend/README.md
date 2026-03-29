@@ -43,3 +43,10 @@ docker compose up --build frontend
 
 - Full stack end-to-end verification depends on backend + MySQL running.
 - Offline queue replay and service worker behavior are integration-tested at service/unit level in Vitest; browser-level SW assertions are not fully simulated in jsdom.
+
+## Security Note (Token Storage)
+
+- Current implementation stores the access token in `localStorage` for compatibility with existing SPA auth flow.
+- Session clear/logout now removes token, cached user, unread counters, toast state, and queued offline mutations.
+- Residual risk: token remains accessible to same-origin JavaScript if XSS exists.
+- Recommended future migration: move to HttpOnly secure cookie/session-based auth with CSRF protection to reduce token exposure surface.

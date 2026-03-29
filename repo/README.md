@@ -62,6 +62,32 @@ docker compose exec backend php artisan test
 docker compose exec frontend npm run test
 ```
 
+### Backend Non-Docker Test Run (Local PHP)
+
+If Docker is unavailable, run backend tests directly from `repo/backend` with these prerequisites:
+
+- PHP 8.2+
+- Composer 2+
+- MySQL 8 (or compatible) running locally
+- Required PHP extensions: `pdo`, `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json`
+
+Bootstrap once:
+
+```bash
+cp .env.example .env
+composer install
+php artisan key:generate
+php artisan migrate:fresh --seed
+```
+
+Run tests:
+
+```bash
+php artisan test
+```
+
+If using a separate local DB, set `DB_*` values in `.env` before migration/test execution.
+
 Frontend build check:
 
 ```bash

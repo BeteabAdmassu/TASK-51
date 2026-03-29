@@ -85,12 +85,18 @@ Base path: `/api/v1`
 | GET | `/reports/trends` | Admin/Fleet | Time-series ride counts |
 | GET | `/reports/distribution` | Admin/Fleet | Ride status distribution |
 | GET | `/reports/regions` | Admin/Fleet | Region summary via local JSON mapping |
-| POST | `/reports/export` | Admin/Fleet | Create CSV export and signed URL |
-| GET | `/reports/exports/{filename}` | Signed URL | Download exported CSV |
+| POST | `/reports/export` | Admin/Fleet | Create CSV/XLSX export and signed URL (`destination` is a safe key, not a filesystem path) |
+| GET | `/reports/exports/{reportExport}` | Signed URL + Auth + Role | Download export owned by requester (or admin override) |
 | GET | `/reports/templates` | Admin/Fleet | List report templates |
 | POST | `/reports/templates` | Admin/Fleet | Create report template |
 | PATCH | `/reports/templates/{template}` | Admin/Fleet owner | Update template |
 | DELETE | `/reports/templates/{template}` | Admin/Fleet owner | Delete template |
+
+### Report Export Destination Rules
+
+- `destination` accepts only `[A-Za-z0-9_-]` and is treated as a logical bucket key.
+- Files are written only under `storage/app/exports/<destination>/...`.
+- Arbitrary paths and traversal patterns are rejected.
 
 ## Utility/Admin
 

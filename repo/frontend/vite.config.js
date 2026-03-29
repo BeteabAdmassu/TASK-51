@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { configDefaults } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
@@ -47,5 +48,6 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    exclude: [...configDefaults.exclude, 'tests/e2e/**'],
   },
 })

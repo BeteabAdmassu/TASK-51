@@ -98,21 +98,25 @@ const queuedResponse = (config) => ({
 
 const queueMutation = async (config) => {
   const idempotencyKey = config.headers?.['X-Idempotency-Key'] || makeIdempotencyKey()
+  const safeHeaders = {
+    'X-Idempotency-Key': idempotencyKey,
+    ...(config.headers?.['Content-Type'] ? { 'Content-Type': config.headers['Content-Type'] } : {}),
+  }
 
   await enqueuePendingAction({
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     url: config.url,
     method: String(config.method).toUpperCase(),
     data: config.data ?? null,
-    headers: {
-      'X-Idempotency-Key': idempotencyKey,
-      ...(config.headers?.['Content-Type'] ? { 'Content-Type': config.headers['Content-Type'] } : {}),
-    },
+    headers: safeHeaders,
     owner_key: currentOwnerKey(),
     timestamp: Date.now(),
   })
 
-  return queuedResponse(config)
+  return queuedResponse({
+    ...config,
+    headers: safeHeaders,
+  })
 }
 
 const markSyncFailure = (action, reason) => {

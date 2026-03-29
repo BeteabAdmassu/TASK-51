@@ -36,6 +36,9 @@ export const useAuthStore = defineStore('auth', {
       this.error = ''
       localStorage.removeItem(TOKEN_KEY)
       localStorage.removeItem(USER_KEY)
+      localStorage.removeItem('roadlink_chat_unread_total')
+      sessionStorage.removeItem('roadlink_toast_message')
+      sessionStorage.removeItem('roadlink_toast_type')
       clearOfflineQueue()
     },
 

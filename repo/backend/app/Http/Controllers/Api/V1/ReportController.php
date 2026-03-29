@@ -7,6 +7,7 @@ use App\Http\Requests\Reports\ReportExportRequest;
 use App\Http\Requests\Reports\ReportFiltersRequest;
 use App\Http\Requests\Reports\ReportTemplateStoreRequest;
 use App\Http\Requests\Reports\ReportTemplateUpdateRequest;
+use App\Models\ReportExport;
 use App\Models\ReportTemplate;
 use App\Services\ReportService;
 use Illuminate\Http\JsonResponse;
@@ -53,8 +54,9 @@ class ReportController extends Controller
         $extension = $payload['format'] === 'xlsx' ? 'xlsx' : 'csv';
         $filename = (string) Str::uuid().'.'.$extension;
         $relativeDir = 'exports/'.$destination;
+        $relativePath = $relativeDir.'/'.$filename;
         Storage::disk('local')->makeDirectory($relativeDir);
-        $path = Storage::disk('local')->path($relativeDir.'/'.$filename);
+        $path = Storage::disk('local')->path($relativePath);
 
         $rows = [];
         if ($payload['type'] === 'regions') {
@@ -95,23 +97,40 @@ class ReportController extends Controller
             fclose($handle);
         }
 
+        $export = ReportExport::query()->create([
+            'user_id' => $request->user()->id,
+            'type' => $payload['type'],
+            'format' => $extension,
+            'destination' => $destination,
+            'relative_path' => $relativePath,
+            'created_at' => now(),
+        ]);
+
         $url = URL::temporarySignedRoute(
             'reports.exports.download',
             now()->addMinutes(10),
-            ['filename' => $filename, 'destination' => $destination]
+            ['reportExport' => $export->id]
         );
 
         return response()->json(['url' => $url]);
     }
 
-    public function download(Request $request, string $filename)
+    public function download(Request $request, ReportExport $reportExport)
     {
-        $destination = $this->validateDestination((string) $request->query('destination', 'default'));
-        $path = 'exports/'.$destination.'/'.$filename;
+        $user = $request->user();
+        if ($user->role !== 'admin' && $reportExport->user_id !== $user->id) {
+            return response()->json([
+                'error' => 'forbidden',
+                'message' => 'You do not have permission to access this export',
+            ], 403);
+        }
+
+        $path = $reportExport->relative_path;
         if (! Storage::disk('local')->exists($path)) {
             abort(404);
         }
 
+        $filename = basename($path);
         $contentType = str_ends_with($filename, '.xlsx')
             ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             : 'text/csv';

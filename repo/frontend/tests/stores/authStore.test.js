@@ -83,4 +83,21 @@ describe('authStore', () => {
 
     expect(clearOfflineQueue).toHaveBeenCalled()
   })
+
+  it('forceLogout clears sensitive local/session artifacts', () => {
+    const store = useAuthStore()
+    localStorage.setItem('roadlink_chat_unread_total', '5')
+    sessionStorage.setItem('roadlink_toast_message', 'toast')
+    sessionStorage.setItem('roadlink_toast_type', 'error')
+
+    store.persistSession({ id: 3, username: 'admin01', role: 'admin' }, 'token-admin')
+    store.forceLogout()
+
+    expect(store.user).toBeNull()
+    expect(store.token).toBeNull()
+    expect(localStorage.getItem('roadlink_chat_unread_total')).toBeNull()
+    expect(sessionStorage.getItem('roadlink_toast_message')).toBeNull()
+    expect(sessionStorage.getItem('roadlink_toast_type')).toBeNull()
+    expect(clearOfflineQueue).toHaveBeenCalled()
+  })
 })
