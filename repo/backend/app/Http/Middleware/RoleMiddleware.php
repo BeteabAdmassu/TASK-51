@@ -10,12 +10,12 @@ use Symfony\Component\HttpFoundation\Response;
 class RoleMiddleware
 {
     /**
-     * @param  string  $roles
+     * @param  string  ...$roles
      */
-    public function handle(Request $request, Closure $next, string $roles): Response|JsonResponse
+    public function handle(Request $request, Closure $next, string ...$roles): Response|JsonResponse
     {
         $user = $request->user();
-        $allowedRoles = array_filter(array_map('trim', explode(',', $roles)));
+        $allowedRoles = array_filter(array_map('trim', $roles));
 
         if (! $user || ! in_array($user->role, $allowedRoles, true)) {
             return response()->json([

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
-const API_BASE = process.env.E2E_API_URL || 'http://localhost:8000/api/v1'
-const WEB_BASE = process.env.E2E_WEB_URL || 'http://localhost:3000'
+const API_BASE = process.env.E2E_API_URL || 'http://127.0.0.1:8000/api/v1'
+const WEB_BASE = process.env.E2E_WEB_URL || 'http://127.0.0.1:3000'
 
 const randomSuffix = () => `${Date.now()}${Math.floor(Math.random() * 10000)}`
 
@@ -58,7 +58,17 @@ test('ride lifecycle + report export with auth boundaries', async ({ request, pa
     frontendReady = false
   }
 
-  test.skip(!(backendReady && frontendReady), 'Backend/frontend is not reachable in this environment.')
+  const shouldSkipUnsupported = process.env.E2E_ALLOW_SKIP_UNSUPPORTED === '1'
+
+  if (!(backendReady && frontendReady)) {
+    if (shouldSkipUnsupported) {
+      test.skip(true, 'Backend/frontend is not reachable in this environment.')
+    }
+
+    throw new Error(
+      'E2E services are unavailable. Start backend/frontend first or set E2E_ALLOW_SKIP_UNSUPPORTED=1 for unsupported environments.',
+    )
+  }
 
   const rider = await registerUser(request, { role: 'rider', prefix: 'e2e_rider' })
   const driver = await registerUser(request, { role: 'driver', prefix: 'e2e_driver' })

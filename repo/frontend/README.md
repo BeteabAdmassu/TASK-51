@@ -31,6 +31,47 @@ npm run test
 npm run build
 ```
 
+## Executable E2E (Playwright)
+
+At least one critical flow is automated in `tests/e2e/ride-lifecycle-and-reports.e2e.spec.js`.
+
+Recommended startup sequence (two terminals):
+
+1) Backend (`repo/backend`)
+
+```bash
+php artisan serve --host=127.0.0.1 --port=8000
+```
+
+2) Frontend (`repo/frontend`)
+
+```bash
+npm run dev -- --host 127.0.0.1 --port 3000
+```
+
+Then run E2E:
+
+```bash
+npm run test:e2e
+```
+
+Expected behavior:
+
+- exits `0` only when Playwright passes
+- exits non-zero when Playwright fails or services are unreachable
+- uses `E2E_WEB_URL` (default `http://127.0.0.1:3000`) and `E2E_API_URL` (default `http://127.0.0.1:8000/api/v1`)
+
+If backend/runtime is unavailable in your environment, use:
+
+```bash
+npm run test:e2e:skip-if-unavailable
+```
+
+Playwright artifacts on failure are stored in:
+
+- `repo/frontend/test-results/playwright/`
+- includes retained traces, screenshots, and videos for failed tests.
+
 ## Docker Run
 
 From `repo`:
@@ -48,5 +89,6 @@ docker compose up --build frontend
 
 - Current implementation stores the access token in `localStorage` for compatibility with existing SPA auth flow.
 - Session clear/logout now removes token, cached user, unread counters, toast state, and queued offline mutations.
+- Frontend code does not intentionally log auth tokens in console/debug output.
 - Residual risk: token remains accessible to same-origin JavaScript if XSS exists.
 - Recommended future migration: move to HttpOnly secure cookie/session-based auth with CSRF protection to reduce token exposure surface.

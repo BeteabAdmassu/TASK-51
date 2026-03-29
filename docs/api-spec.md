@@ -97,6 +97,8 @@ Base path: `/api/v1`
 - `destination` accepts only `[A-Za-z0-9_-]` and is treated as a logical bucket key.
 - Files are written only under `storage/app/exports/<destination>/...`.
 - Arbitrary paths and traversal patterns are rejected.
+- This intentionally prevents raw admin-supplied absolute filesystem paths for safety and auditability.
+- Extension path: if business requires admin-managed directories, map approved aliases to a server-side allowlist (never pass raw paths directly from API input).
 
 ## Utility/Admin
 

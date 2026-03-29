@@ -27,6 +27,16 @@ Or run the bundled verification script:
 bash scripts/verify-local.sh
 ```
 
+### Verification Checklist (Expected Pass Indicators)
+
+1. `composer install` completes without dependency errors.
+2. `php artisan key:generate` returns success and sets `APP_KEY`.
+3. `php artisan migrate:fresh --seed` completes with all migrations/seeders applied.
+4. `php artisan test` finishes with all tests passing.
+5. Quick smoke endpoint check: `GET /api/v1/auth/me` without token returns `401`.
+
+If any step fails, confirm DB connectivity (`DB_*` values in `.env`) and required PHP extensions.
+
 ## Report Export Destination Semantics
 
 - `destination` in `POST /api/v1/reports/export` is a **safe logical key**, not a raw filesystem path.
