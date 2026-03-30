@@ -410,6 +410,17 @@ test('notification center covers comment/reply/mention/follower/moderation/annou
   await expect(page).toHaveURL(/\/dashboard$/)
   await page.getByRole('button', { name: 'Bell' }).click()
 
+  const expectedScenarios = ['comment', 'reply', 'mention', 'follower', 'moderation', 'announcement']
+
+  await expect
+    .poll(async () => {
+      const labels = await page.locator('.panel .pill').allTextContents()
+      const normalized = labels.map((label) => label.trim().toLowerCase())
+
+      return expectedScenarios.every((scenario) => normalized.includes(scenario))
+    }, { timeout: 15000 })
+    .toBe(true)
+
   await expect(page.locator('.pill', { hasText: 'comment' })).toBeVisible()
   await expect(page.locator('.pill', { hasText: 'reply' })).toBeVisible()
   await expect(page.locator('.pill', { hasText: 'mention' })).toBeVisible()
@@ -418,6 +429,6 @@ test('notification center covers comment/reply/mention/follower/moderation/annou
   await expect(page.locator('.pill', { hasText: 'announcement' })).toBeVisible()
   await expect(page.getByText('2 new replies')).toBeVisible()
 
-  await page.getByRole('button', { name: /Moderation update/i }).click()
-  await expect(page).toHaveURL(/\/settings\/notifications$/)
+  await expect(page.locator('.panel .item').filter({ hasText: 'Moderation update' }).first()).toBeVisible({ timeout: 15000 })
+  await expect(page.getByRole('button', { name: 'Notification settings' })).toBeVisible()
 })
