@@ -13,7 +13,7 @@ wait_for_container() {
   local service="$1"
   local check_cmd="$2"
   local label="$3"
-  local attempts=60
+  local attempts=120
   local delay=2
 
   echo "[run_tests.sh] Waiting for ${service} to be ready (${label})..."
