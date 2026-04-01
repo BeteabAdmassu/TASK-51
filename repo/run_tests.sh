@@ -44,12 +44,8 @@ wait_for_container() {
 
 wait_for_backend_ready() {
   wait_for_container "backend" \
-    "test -f /var/www/html/vendor/autoload.php" \
-    "composer install"
-
-  wait_for_container "backend" \
-    "php /var/www/html/artisan --version" \
-    "artisan boot"
+    "curl -sf http://localhost:8000 >/dev/null 2>&1" \
+    "http server"
 }
 
 wait_for_frontend_ready() {
