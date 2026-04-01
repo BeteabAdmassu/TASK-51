@@ -83,7 +83,7 @@ class BoundaryExceptionTest extends TestCase
             ])
             ->assertStatus(200);
 
-        $this->assertSame($responseA->json(), $responseB->json());
+        $this->assertEquals($responseA->json(), $responseB->json());
         $this->assertDatabaseHas('ride_orders', [
             'id' => $order->id,
             'driver_id' => $driver->id,

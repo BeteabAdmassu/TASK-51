@@ -9,6 +9,7 @@ repo/
 ├── backend/                    # Laravel 11 API, scheduler jobs, queues, tests
 ├── frontend/                   # Vue 3 SPA, PWA service worker, Vitest suite
 ├── docker-compose.yml          # One-click stack (mysql, backend, frontend, scheduler)
+├── run.sh                      # Docker-based test runner (backend + frontend)
 └── Makefile                    # Convenience wrappers
 
 ../docs/
@@ -62,31 +63,18 @@ docker compose exec backend php artisan test
 docker compose exec frontend npm run test
 ```
 
+Docker all-in-one test run:
+
+```bash
+./run.sh
+```
+
 ### Backend Non-Docker Test Run (Local PHP)
 
-If Docker is unavailable, run backend tests directly from `repo/backend` with these prerequisites:
+If Docker is unavailable, see `backend/README.md` for the two explicit paths:
 
-- PHP 8.2+
-- Composer 2+
-- MySQL 8 (or compatible) running locally
-- Required PHP extensions: `pdo`, `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json`
-
-Bootstrap once:
-
-```bash
-cp .env.example .env
-composer install
-php artisan key:generate
-php artisan migrate:fresh --seed
-```
-
-Run tests:
-
-```bash
-php artisan test
-```
-
-If using a separate local DB, set `DB_*` values in `.env` before migration/test execution.
+- Path A: test-only flow (default SQLite in-memory via `phpunit.xml`)
+- Path B: local app runtime flow (MySQL-backed manual verification)
 
 Frontend build check:
 

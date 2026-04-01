@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('username')->unique();
             $table->string('password');
-            $table->string('email')->nullable();
-            $table->string('phone')->nullable();
+            $table->text('email')->nullable();
+            $table->text('phone')->nullable();
             $table->enum('role', ['rider', 'driver', 'fleet_manager', 'admin'])->default('rider');
             $table->unsignedTinyInteger('failed_login_attempts')->default(0);
             $table->timestamp('locked_until')->nullable();

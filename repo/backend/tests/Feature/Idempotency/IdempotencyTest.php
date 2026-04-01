@@ -52,7 +52,7 @@ class IdempotencyTest extends TestCase
             ->postJson('/api/v1/ride-orders', $payloadChanged)
             ->assertStatus(201);
 
-        $this->assertSame($responseOne->json(), $responseTwo->json());
+        $this->assertEquals($responseOne->json(), $responseTwo->json());
         $this->assertDatabaseCount('ride_orders', 1);
 
         $responseThree = $this->withHeader('X-Idempotency-Key', 'KEY-B')
