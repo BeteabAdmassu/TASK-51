@@ -14,6 +14,9 @@ WORKDIR /var/www/html
 
 COPY . .
 
+RUN mkdir -p bootstrap/cache storage/framework/cache storage/framework/sessions storage/framework/views \
+    && chmod -R 775 bootstrap/cache storage/framework
+
 RUN composer install --no-interaction --prefer-dist
 RUN chmod +x docker/entrypoint.sh
 
