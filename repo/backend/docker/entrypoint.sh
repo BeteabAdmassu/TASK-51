@@ -32,21 +32,12 @@ set_env_var "DB_PASSWORD" "${DB_PASSWORD:-}"
 mkdir -p bootstrap/cache storage/framework/cache storage/framework/sessions storage/framework/views
 chmod -R 775 bootstrap/cache storage/framework || true
 
-MAX_RETRIES=3
-for attempt in $(seq 1 $MAX_RETRIES); do
-  echo "Running composer install (attempt ${attempt}/${MAX_RETRIES})..."
-  if composer install --no-interaction --prefer-dist 2>&1; then
-    break
-  fi
-  if [ "$attempt" -lt "$MAX_RETRIES" ]; then
-    echo "composer install failed, clearing vendor and retrying..."
-    rm -rf vendor
-    composer clear-cache 2>/dev/null || true
-  else
-    echo "composer install failed after ${MAX_RETRIES} attempts."
-    exit 1
-  fi
-done
+if [ ! -f "vendor/autoload.php" ] && [ -d "/opt/vendor-cache" ]; then
+  echo "Restoring vendor from build cache..."
+  cp -a /opt/vendor-cache/. vendor/
+fi
+
+composer install --no-interaction --prefer-dist
 
 if ! grep -q "^APP_KEY=base64:" .env; then
   php artisan key:generate --force
