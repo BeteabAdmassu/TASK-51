@@ -32,12 +32,9 @@ set_env_var "DB_PASSWORD" "${DB_PASSWORD:-}"
 mkdir -p bootstrap/cache storage/framework/cache storage/framework/sessions storage/framework/views
 chmod -R 775 bootstrap/cache storage/framework || true
 
-if [ ! -f "vendor/autoload.php" ] && [ -d "/opt/vendor-cache" ]; then
-  echo "Restoring vendor from build cache..."
-  cp -a /opt/vendor-cache/. vendor/
+if [ ! -f "vendor/autoload.php" ]; then
+  composer install --no-interaction --prefer-dist
 fi
-
-composer install --no-interaction --prefer-dist
 
 if ! grep -q "^APP_KEY=base64:" .env; then
   php artisan key:generate --force

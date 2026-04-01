@@ -19,7 +19,8 @@ class SessionLifetimeTest extends TestCase
 
         $setCookieHeader = implode("\n", $response->headers->all('set-cookie'));
 
-        $this->assertStringContainsString('laravel_session=', $setCookieHeader);
+        $cookieName = config('session.cookie');
+        $this->assertStringContainsString($cookieName . '=', $setCookieHeader);
         $this->assertMatchesRegularExpression('/Max-Age=(43199|43200)/', $setCookieHeader);
     }
 }
