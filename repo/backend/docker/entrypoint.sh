@@ -54,14 +54,16 @@ fi
 rm -f bootstrap/cache/config.php
 php artisan config:clear || true
 
-php artisan migrate --force
+if echo "$*" | grep -q "serve"; then
+  php artisan migrate --force
 
-php artisan storage:link || true
+  php artisan storage:link || true
 
-USER_COUNT=$(php artisan tinker --execute="echo Illuminate\\Support\\Facades\\Schema::hasTable('users') ? App\\Models\\User::count() : 0;" --no-interaction)
+  USER_COUNT=$(php artisan tinker --execute="echo Illuminate\\Support\\Facades\\Schema::hasTable('users') ? App\\Models\\User::count() : 0;" --no-interaction)
 
-if [ "${USER_COUNT:-0}" -eq 0 ]; then
-  php artisan db:seed --force
+  if [ "${USER_COUNT:-0}" -eq 0 ]; then
+    php artisan db:seed --force
+  fi
 fi
 
 exec "$@"
